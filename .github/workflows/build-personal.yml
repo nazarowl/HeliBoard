@@ -10,7 +10,7 @@ name: Build personal APK
 on:
   workflow_dispatch:
   push:
-    branches: [ main, gif-panel ]
+    branches: [ main ]
     paths:
       - 'app/**'
       - '.github/workflows/build-personal.yml'
