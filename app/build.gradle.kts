@@ -30,6 +30,7 @@ android {
         if (keystorePath != null) {
             create("personal") {
                 storeFile = file(keystorePath)
+                storeType = "PKCS12"
                 storePassword = System.getenv("SIGNING_STORE_PASSWORD")
                 keyAlias = System.getenv("SIGNING_KEY_ALIAS")
                 keyPassword = System.getenv("SIGNING_KEY_PASSWORD")

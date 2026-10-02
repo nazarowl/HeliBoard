@@ -36,24 +36,45 @@ jobs:
       - name: Decode signing key
         env:
           SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
         run: |
-          if [ -n "$SIGNING_KEYSTORE_BASE64" ]; then
-            echo "$SIGNING_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/personal.jks"
-            echo "SIGNING_KEYSTORE_PATH=$RUNNER_TEMP/personal.jks" >> "$GITHUB_ENV"
-          else
+          if [ -z "$SIGNING_KEYSTORE_BASE64" ]; then
             echo "::warning::No SIGNING_KEYSTORE_BASE64 secret, using a temporary debug key"
+            exit 0
           fi
+          # tolerate spaces / line breaks from copy-pasting
+          PW=$(printf %s "$SIGNING_PASSWORD" | tr -d ' \r\n')
+          if ! printf %s "$SIGNING_KEYSTORE_BASE64" | tr -d ' \r\n' | base64 -d > "$RUNNER_TEMP/personal.jks" 2>/dev/null; then
+            echo "::warning::SIGNING_KEYSTORE_BASE64 is not valid base64 (copied incompletely?), using a temporary debug key"
+            exit 0
+          fi
+          if ! keytool -list -keystore "$RUNNER_TEMP/personal.jks" -storetype PKCS12 -storepass "$PW" -alias personal > /dev/null 2>&1; then
+            echo "::warning::Keystore can't be opened with SIGNING_PASSWORD, check both secrets. Using a temporary debug key"
+            exit 0
+          fi
+          echo "Signing key OK"
+          echo "SIGNING_KEYSTORE_PATH=$RUNNER_TEMP/personal.jks" >> "$GITHUB_ENV"
+          echo "::add-mask::$PW"
+          echo "SIGNING_STORE_PASSWORD=$PW" >> "$GITHUB_ENV"
+          echo "SIGNING_KEY_PASSWORD=$PW" >> "$GITHUB_ENV"
 
       - name: Build
         env:
           KLIPY_API_KEY: ${{ secrets.KLIPY_API_KEY }}
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
           SIGNING_KEY_ALIAS: personal
         run: |
           if [ -z "$KLIPY_API_KEY" ]; then echo "::warning::No KLIPY_API_KEY secret, GIF picker will not work"; fi
+          export KLIPY_API_KEY=$(printf %s "$KLIPY_API_KEY" | tr -d ' \r\n"\\')
           chmod +x gradlew
-          ./gradlew assemblePersonal
+          set +e
+          ./gradlew assemblePersonal 2>&1 | tee "$RUNNER_TEMP/build.log"
+          status=${PIPESTATUS[0]}
+          if [ $status -ne 0 ]; then
+            # show the reason as annotations, they are visible without opening the logs
+            grep -A12 "What went wrong" "$RUNNER_TEMP/build.log" | grep -v '^\s*$' | head -9 | sed 's/^/::error::/'
+            grep -m5 "^e: " "$RUNNER_TEMP/build.log" | sed 's/^/::error::/'
+          fi
+          exit $status
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
