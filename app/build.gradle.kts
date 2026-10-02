@@ -20,6 +20,21 @@ android {
             abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
         }
         proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        // GIF picker: key comes from the KLIPY_API_KEY environment variable (GitHub secret), never from the repo
+        buildConfigField("String", "KLIPY_API_KEY", "\"${System.getenv("KLIPY_API_KEY") ?: ""}\"")
+    }
+
+    signingConfigs {
+        // personal builds are signed with a fixed key from GitHub secrets, so new builds install as updates
+        val keystorePath = System.getenv("SIGNING_KEYSTORE_PATH")
+        if (keystorePath != null) {
+            create("personal") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+                keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -41,6 +56,11 @@ android {
             isMinifyEnabled = true
             isJniDebuggable = false
             applicationIdSuffix = ".debug"
+        }
+        create("personal") { // like release, but installs next to the official HeliBoard and is signed for updates
+            initWith(buildTypes.getByName("release"))
+            applicationIdSuffix = ".personal"
+            signingConfig = signingConfigs.findByName("personal") ?: signingConfigs.getByName("debug")
         }
         create("runTests") { // build variant for running tests on CI that skips tests known to fail
             isMinifyEnabled = false

@@ -399,7 +399,7 @@ class EmojiSearchActivity : ComponentActivity() {
             dictionaryFacilitator = null
         }
 
-        private fun encodePrivateImeOptions(privateImeOptions: PrivateImeOptions) =
+        internal fun encodePrivateImeOptions(privateImeOptions: PrivateImeOptions) =
             "$PRIVATE_IME_OPTIONS_PREFIX.${privateImeOptions.height},"
 
         private fun initDictionaryFacilitator(context: Context) {

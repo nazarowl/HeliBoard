@@ -3,4 +3,7 @@
     <files-path
         name="clipboard_data"
         path="clipboard/"/>
+    <cache-path
+        name="gifs"
+        path="gifs/"/>
 </paths>

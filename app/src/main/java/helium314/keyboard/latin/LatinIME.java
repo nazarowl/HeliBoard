@@ -45,6 +45,8 @@ import helium314.keyboard.keyboard.KeyboardMode;
 import helium314.keyboard.keyboard.emoji.EmojiPalettesView;
 import helium314.keyboard.keyboard.emoji.EmojiSearchActivity;
 import helium314.keyboard.keyboard.emoji.EmojiSearchActivityKt;
+import helium314.keyboard.keyboard.gif.GifInserter;
+import helium314.keyboard.keyboard.gif.GifSearchActivity;
 import helium314.keyboard.keyboard.internal.KeyboardIconsSet;
 import helium314.keyboard.keyboard.internal.keyboard_parser.floris.KeyCode;
 import helium314.keyboard.latin.common.InsetsOutlineProvider;
@@ -1755,6 +1757,11 @@ public class LatinIME extends InputMethodService implements
                           .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_MULTIPLE_TASK));
     }
 
+    public void launchGifSearch() {
+        startActivity(new Intent().setClass(this, GifSearchActivity.class)
+                          .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_MULTIPLE_TASK));
+    }
+
     private void onEmojiSearchDone(Intent intent) {
         Log.d(EmojiSearchActivityKt.TAG, "after activity closing. isEmojiSearch: " + isEmojiSearch() + ". Intent: " + intent +
                 (intent != null ? ". imeClosed: " + isImeClosed(intent) + ". selected emoji: " + getSelectedEmoji(intent) : ""));
@@ -1765,6 +1772,10 @@ public class LatinIME extends InputMethodService implements
                 mHandler.postDelayed(mKeyboardSwitcher::setEmojiKeyboard, 100);
                 if (intent.hasExtra(EmojiSearchActivity.EMOJI_KEY)) {
                      onTextInput(intent.getStringExtra(EmojiSearchActivity.EMOJI_KEY));
+                }
+                if (intent.hasExtra(GifSearchActivity.GIF_FILE_KEY)) {
+                    GifInserter.insert(this, intent.getStringExtra(GifSearchActivity.GIF_FILE_KEY),
+                            intent.getStringExtra(GifSearchActivity.GIF_URL_KEY));
                 }
             }
         }

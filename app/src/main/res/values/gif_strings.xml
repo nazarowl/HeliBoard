@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    SPDX-License-Identifier: GPL-3.0-only
+-->
+<resources>
+    <string name="gif_search_title" translatable="false">GIFs</string>
+    <string name="gif_search_placeholder" translatable="false">Search KLIPY</string>
+    <string name="gif_powered_by" translatable="false">Powered by KLIPY</string>
+    <string name="gif_no_api_key" translatable="false">This build has no KLIPY API key. Add the KLIPY_API_KEY secret to the GitHub repository and rebuild.</string>
+    <string name="gif_load_error" translatable="false">Couldn\'t load GIFs. Check your internet connection.</string>
+    <string name="gif_no_results" translatable="false">No GIFs found</string>
+    <string name="gif_send_error" translatable="false">Couldn\'t download that GIF</string>
+</resources>
